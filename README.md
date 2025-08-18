@@ -1,4 +1,4 @@
-準備中# 資産形成シミュレーター (Wealth Trajectory Simulator)
+# 資産形成シミュレーター (Wealth Trajectory Simulator)
 
 **[公開リンク (準備中)]()** | **[GitHubリポジトリ](https://github.com/nishipippi/asset-simulator)**
 
