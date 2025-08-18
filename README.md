@@ -1,6 +1,6 @@
 # 資産形成シミュレーター (Wealth Trajectory Simulator)
 
-**[公開リンク (準備中)]()** | **[GitHubリポジトリ](https://github.com/nishipippi/asset-simulator)**
+~~**[公開リンク (準備中)]()**~~ | **[GitHubリポジトリ](https://github.com/nishipippi/asset-simulator)**
 
 これは、モンテカルロ法を用いてあなたの資産が将来どのように推移するかを視覚化するための金融シミュレーターです。積立期間や取崩期間などのフェーズを自由にカスタマイズし、確率に基づいた資産予測を確認できます。
 
