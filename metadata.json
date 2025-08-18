@@ -1,0 +1,5 @@
+{
+  "name": "Wealth Trajectory Simulator",
+  "description": "A Monte Carlo-based financial simulator to visualize your wealth trajectory. Build your financial plan with customizable blocks for accumulation and withdrawal phases, and see a probabilistic forecast of your assets.",
+  "requestFramePermissions": []
+}
