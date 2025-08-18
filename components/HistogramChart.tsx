@@ -111,7 +111,7 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
     
     if (isLoading) {
         return (
-          <div className="flex-1 flex items-center justify-center bg-gray-800 rounded-xl min-h-[400px] mt-6">
+          <div className="bg-gray-800 rounded-xl h-[400px] lg:flex-1 lg:h-auto">
             {/* Loading state is silent here as the main chart shows it */}
           </div>
         );
@@ -119,7 +119,7 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
     
     if (!data || data.length === 0) {
         return (
-          <div className="flex-1 flex items-center justify-center bg-gray-800 rounded-xl min-h-[400px] mt-6">
+          <div className="bg-gray-800 rounded-xl h-[400px] lg:flex-1 lg:h-auto">
              {/* No data state is silent here */}
           </div>
         );
@@ -128,7 +128,7 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
     const isZoomed = maxPercentile < 100;
 
     return (
-        <div className="relative flex-1 bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg min-h-[400px] mt-6 flex flex-col">
+        <div className="relative bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg h-[400px] flex flex-col lg:flex-1 lg:h-auto">
             <div className="flex justify-center items-center mb-2 relative h-7">
                 <h3 className="text-lg font-bold text-white text-center">
                     最終資産の分布
@@ -142,7 +142,7 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
                     </button>
                 )}
             </div>
-            <div className="flex-grow">
+            <div className="flex-grow min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={histogramData} margin={{ top: 5, right: 30, left: 30, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
