@@ -6,6 +6,7 @@ export interface BlockData {
   monthlyContribution: number | '';
   annualReturn: number | '';
   annualRisk: number | '';
+  leverage: number | '';
 }
 
 export interface SimulationParams {

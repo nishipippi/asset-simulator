@@ -18,6 +18,7 @@ const App: React.FC = () => {
       monthlyContribution: 200000,
       annualReturn: 8,
       annualRisk: 16,
+      leverage: 1,
     },
     {
       id: 'block-2',
@@ -26,6 +27,7 @@ const App: React.FC = () => {
       monthlyContribution: 250000,
       annualReturn: 8,
       annualRisk: 16,
+      leverage: 1,
     },
     {
       id: 'block-3',
@@ -34,6 +36,7 @@ const App: React.FC = () => {
       monthlyContribution: 200000,
       annualReturn: 8,
       annualRisk: 16,
+      leverage: 1,
     },
     {
       id: 'block-4',
@@ -42,6 +45,7 @@ const App: React.FC = () => {
       monthlyContribution: -23000,
       annualReturn: 4,
       annualRisk: 16,
+      leverage: 1,
     },
   ]);
 
@@ -65,6 +69,7 @@ const App: React.FC = () => {
         monthlyContribution: Number(b.monthlyContribution) || 0,
         annualReturn: Number(b.annualReturn) || 0,
         annualRisk: Number(b.annualRisk) || 0,
+        leverage: Number(b.leverage) || 1,
       })),
     };
 

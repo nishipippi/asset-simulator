@@ -45,6 +45,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
       monthlyContribution: 50000,
       annualReturn: 7,
       annualRisk: 15,
+      leverage: 1,
     };
     setBlocks([...blocks, newBlock]);
   };

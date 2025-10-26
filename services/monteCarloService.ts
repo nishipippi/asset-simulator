@@ -24,13 +24,22 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
       return;
     }
 
-    const monthlyBlocks = blocks.map(block => ({
-      ...block,
-      monthlyContribution: Number(block.monthlyContribution) || 0,
-      monthlyReturn: Math.pow(1 + (Number(block.annualReturn) || 0) / 100, 1 / 12) - 1,
-      monthlyRisk: ((Number(block.annualRisk) || 0) / 100) / Math.sqrt(12),
-      durationMonths: (Number(block.durationYears) || 0) * 12,
-    }));
+    const monthlyBlocks = blocks.map(block => {
+      const leverage = Number((block as any).leverage) || 1;
+      const annualReturn = (Number(block.annualReturn) || 0) / 100;
+      const annualRisk = (Number(block.annualRisk) || 0) / 100;
+
+      const leveragedAnnualReturn = leverage * annualReturn;
+      const leveragedAnnualRisk = leverage * annualRisk;
+      
+      return {
+        ...block,
+        monthlyContribution: Number(block.monthlyContribution) || 0,
+        monthlyReturn: leveragedAnnualReturn / 12,
+        monthlyRisk: leveragedAnnualRisk / Math.sqrt(12),
+        durationMonths: (Number(block.durationYears) || 0) * 12,
+      };
+    });
 
     const totalMonths = monthlyBlocks.reduce((acc, block) => acc + block.durationMonths, 0);
     const totalYears = Math.floor(totalMonths / 12);

@@ -42,7 +42,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
             placeholder="フェーズ名（例：積立期間）"
             className="w-full bg-transparent text-lg font-bold text-white placeholder-gray-500 focus:outline-none"
         />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <InputField
               label="期間"
               value={block.durationYears}
@@ -78,6 +78,16 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                 onUpdate(block.id, { annualRisk: isNaN(val) ? '' : val });
               }}
               suffix="%"
+            />
+            <InputField
+              label="レバレッジ"
+              value={block.leverage}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                onUpdate(block.id, { leverage: isNaN(val) ? '' : val });
+              }}
+              suffix="倍"
+              placeholder="1"
             />
         </div>
       </div>
