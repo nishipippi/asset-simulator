@@ -89,17 +89,52 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                 </span>
             </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <InputField
-              label="期間"
-              value={block.durationYears}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                onUpdate(block.id, { durationYears: isNaN(val) ? '' : val });
-              }}
-              suffix="年"
-              step={1}
-            />
+        
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <InputField
+                label="期間"
+                value={block.durationYears}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  onUpdate(block.id, { durationYears: isNaN(val) ? '' : val });
+                }}
+                suffix="年"
+                step={1}
+              />
+              <InputField
+                label="年次リターン"
+                value={block.annualReturn}
+                onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    onUpdate(block.id, { annualReturn: isNaN(val) ? '' : val });
+                }}
+                suffix="%"
+                step={0.5}
+              />
+              <InputField
+                label="年次リスク"
+                value={block.annualRisk}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  onUpdate(block.id, { annualRisk: isNaN(val) ? '' : val });
+                }}
+                suffix="%"
+                step={0.5}
+              />
+              <InputField
+                label="レバレッジ"
+                value={block.leverage}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  onUpdate(block.id, { leverage: isNaN(val) ? '' : val });
+                }}
+                suffix="倍"
+                placeholder="1"
+                step={0.1}
+              />
+          </div>
+          <div>
             <InputField
               label="毎月の積立/取崩額"
               value={block.monthlyContribution}
@@ -110,38 +145,9 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
               suffix="円"
               step={1000}
             />
-            <InputField
-              label="年次リターン"
-              value={block.annualReturn}
-              onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  onUpdate(block.id, { annualReturn: isNaN(val) ? '' : val });
-              }}
-              suffix="%"
-              step={0.5}
-            />
-            <InputField
-              label="年次リスク"
-              value={block.annualRisk}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                onUpdate(block.id, { annualRisk: isNaN(val) ? '' : val });
-              }}
-              suffix="%"
-              step={0.5}
-            />
-            <InputField
-              label="レバレッジ"
-              value={block.leverage}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                onUpdate(block.id, { leverage: isNaN(val) ? '' : val });
-              }}
-              suffix="倍"
-              placeholder="1"
-              step={0.1}
-            />
+          </div>
         </div>
+
         <div className="flex items-center gap-2 pt-1">
             <input
                 type="checkbox"
