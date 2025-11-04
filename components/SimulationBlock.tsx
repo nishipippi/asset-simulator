@@ -69,14 +69,14 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
       <div className="cursor-grab text-gray-500 hover:text-gray-300 transition-colors py-2">
         <GripVerticalIcon className="w-6 h-6" />
       </div>
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 min-w-0">
         <div className="flex items-center gap-2 justify-between">
             <input
                 type="text"
                 value={block.name}
                 onChange={(e) => onUpdate(block.id, { name: e.target.value })}
                 placeholder="フェーズ名（例：積立期間）"
-                className="flex-grow bg-transparent text-lg font-bold text-white placeholder-gray-500 focus:outline-none"
+                className="flex-grow bg-transparent text-lg font-bold text-white placeholder-gray-500 focus:outline-none min-w-0"
             />
             <button
                 onClick={() => onStandardize(block.id)}
