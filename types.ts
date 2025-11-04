@@ -7,6 +7,7 @@ export interface BlockData {
   annualReturn: number | '';
   annualRisk: number | '';
   leverage: number | '';
+  increaseWithInflation: boolean;
 }
 
 export interface SpotPayment {
@@ -21,6 +22,7 @@ export interface SimulationParams {
   blocks: (Omit<BlockData, 'id' | 'name'> & { name: string, id: string })[];
   spotPayments: (Omit<SpotPayment, 'id' | 'name'> & { name: string, id: string })[];
   numSimulations: number;
+  inflationRate: number;
 }
 
 export interface SimulationDataPoint {

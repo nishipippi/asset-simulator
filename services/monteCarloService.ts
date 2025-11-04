@@ -15,7 +15,7 @@ function generateNormalRandom(mean: number, stdDev: number): number {
 
 export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationResult> => {
   return new Promise((resolve) => {
-    const { initialCapital, blocks, spotPayments, numSimulations } = params;
+    const { initialCapital, blocks, spotPayments, numSimulations, inflationRate } = params;
 
     if (blocks.length === 0 || numSimulations === 0) {
       const finalAssets = [initialCapital];
@@ -23,6 +23,8 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
       resolve({ timeSeries, finalAssets, bankruptcyRate: initialCapital <= 0 ? 100 : 0 });
       return;
     }
+
+    const annualInflationRate = (inflationRate || 0) / 100;
 
     const monthlyBlocks = blocks.map(block => {
       const leverage = Number((block as any).leverage) || 1;
@@ -63,8 +65,12 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
             currentCapital *= (1 + randomReturn);
           }
           
-          // Always apply contribution/withdrawal
-          currentCapital += block.monthlyContribution;
+          const yearsElapsed = Math.floor(monthCounter / 12);
+          let contribution = block.monthlyContribution;
+          if (block.increaseWithInflation) {
+            contribution *= Math.pow(1 + annualInflationRate, yearsElapsed);
+          }
+          currentCapital += contribution;
 
           monthCounter++;
 

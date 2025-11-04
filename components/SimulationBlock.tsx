@@ -90,6 +90,18 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
               placeholder="1"
             />
         </div>
+        <div className="flex items-center gap-2 pt-1">
+            <input
+                type="checkbox"
+                id={`inflation-${block.id}`}
+                checked={block.increaseWithInflation}
+                onChange={(e) => onUpdate(block.id, { increaseWithInflation: e.target.checked })}
+                className="w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded focus:ring-cyan-500 focus:ring-offset-gray-800"
+            />
+            <label htmlFor={`inflation-${block.id}`} className="text-sm text-gray-300 select-none">
+                毎月の積立/取崩額をインフレ率に合わせて増額する
+            </label>
+        </div>
       </div>
       <button onClick={() => onRemove(block.id)} className="text-gray-500 hover:text-red-400 transition-colors p-1 rounded-full">
         <TrashIcon className="w-5 h-5" />

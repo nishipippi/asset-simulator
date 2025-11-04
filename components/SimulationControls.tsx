@@ -10,6 +10,8 @@ interface SimulationControlsProps {
   setInitialCapital: (value: number | '') => void;
   numSimulations: number | '';
   setNumSimulations: (value: number | '') => void;
+  inflationRate: number | '';
+  setInflationRate: (value: number | '') => void;
   blocks: BlockData[];
   setBlocks: React.Dispatch<React.SetStateAction<BlockData[]>>;
   spotPayments: SpotPayment[];
@@ -18,7 +20,7 @@ interface SimulationControlsProps {
   isLoading: boolean;
 }
 
-const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; prefix?: string; }> = ({ label, value, onChange, prefix }) => (
+const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; prefix?: string; suffix?: string; }> = ({ label, value, onChange, prefix, suffix }) => (
     <div>
       <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
       <div className="relative">
@@ -27,15 +29,16 @@ const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChang
           type="number"
           value={value}
           onChange={onChange}
-          className={`w-full bg-gray-700 border border-gray-600 rounded-md py-2 text-gray-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition ${prefix ? 'pl-8' : 'px-3'}`}
+          className={`w-full bg-gray-700 border border-gray-600 rounded-md py-2 text-gray-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition ${prefix ? 'pl-8' : 'px-3'} ${suffix ? 'pr-8' : ''}`}
         />
+        {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{suffix}</span>}
       </div>
     </div>
 );
 
 
 const SimulationControls: React.FC<SimulationControlsProps> = ({
-  initialCapital, setInitialCapital, numSimulations, setNumSimulations, blocks, setBlocks, spotPayments, setSpotPayments, onRunSimulation, isLoading
+  initialCapital, setInitialCapital, numSimulations, setNumSimulations, inflationRate, setInflationRate, blocks, setBlocks, spotPayments, setSpotPayments, onRunSimulation, isLoading
 }) => {
   
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -49,6 +52,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
       annualReturn: 7,
       annualRisk: 15,
       leverage: 1,
+      increaseWithInflation: false,
     };
     setBlocks([...blocks, newBlock]);
   };
@@ -107,7 +111,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
     <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col gap-6 p-4 md:p-6">
       <div className="bg-gray-800 p-4 rounded-xl shadow-lg">
         <h2 className="text-lg font-bold text-white mb-4">全体設定</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <GlobalSettingsInput
             label="初期資産"
             value={initialCapital}
@@ -124,6 +128,15 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
                 const val = parseInt(e.target.value, 10);
                 setNumSimulations(isNaN(val) ? '' : val);
             }}
+          />
+          <GlobalSettingsInput
+            label="年間の想定インフレ率"
+            value={inflationRate}
+            onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setInflationRate(isNaN(val) ? '' : val);
+            }}
+            suffix="%"
           />
         </div>
       </div>
