@@ -15,11 +15,11 @@ function generateNormalRandom(mean: number, stdDev: number): number {
 
 export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationResult> => {
   return new Promise((resolve) => {
-    const { initialCapital, blocks, numSimulations } = params;
+    const { initialCapital, blocks, spotPayments, numSimulations } = params;
 
     if (blocks.length === 0 || numSimulations === 0) {
       const finalAssets = [initialCapital];
-      const timeSeries = blocks.length === 0 ? [{ year: 0, p25: initialCapital, median: initialCapital, p75: initialCapital }] : [];
+      const timeSeries = blocks.length === 0 ? [{ year: 0, p10: initialCapital, p25: initialCapital, median: initialCapital, p75: initialCapital, p90: initialCapital }] : [];
       resolve({ timeSeries, finalAssets, bankruptcyRate: initialCapital <= 0 ? 100 : 0 });
       return;
     }
@@ -70,6 +70,15 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
 
           if (monthCounter % 12 === 0) {
             const year = monthCounter / 12;
+            
+            // Apply spot payments for this year
+            if (spotPayments) {
+                const paymentsForThisYear = spotPayments.filter(p => Number(p.year) === year);
+                for (const payment of paymentsForThisYear) {
+                    currentCapital += Number(payment.amount) || 0;
+                }
+            }
+
             if (year <= totalYears && yearlyCapitalSnapshots[year]) {
               yearlyCapitalSnapshots[year].push(currentCapital);
             }
@@ -84,15 +93,19 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
       const sortedYearlyCapital = [...(yearlyCapitalSnapshots[y] || [])].sort((a, b) => a - b);
       if (sortedYearlyCapital.length === 0) continue;
       
+      const p10Index = Math.floor(sortedYearlyCapital.length * 0.10);
       const p25Index = Math.floor(sortedYearlyCapital.length * 0.25);
       const medianIndex = Math.floor(sortedYearlyCapital.length * 0.50);
       const p75Index = Math.floor(sortedYearlyCapital.length * 0.75);
+      const p90Index = Math.floor(sortedYearlyCapital.length * 0.90);
 
       timeSeries.push({
         year: y,
+        p10: sortedYearlyCapital[p10Index] ?? 0,
         p25: sortedYearlyCapital[p25Index] ?? 0,
         median: sortedYearlyCapital[medianIndex] ?? 0,
         p75: sortedYearlyCapital[p75Index] ?? 0,
+        p90: sortedYearlyCapital[p90Index] ?? 0,
       });
     }
     

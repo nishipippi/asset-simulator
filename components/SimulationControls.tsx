@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { BlockData } from '../types';
+import { BlockData, SpotPayment } from '../types';
 import SimulationBlock from './SimulationBlock';
+import SpotPaymentItem from './SpotPaymentItem';
 import PlusIcon from './icons/PlusIcon';
 
 interface SimulationControlsProps {
@@ -11,6 +12,8 @@ interface SimulationControlsProps {
   setNumSimulations: (value: number | '') => void;
   blocks: BlockData[];
   setBlocks: React.Dispatch<React.SetStateAction<BlockData[]>>;
+  spotPayments: SpotPayment[];
+  setSpotPayments: React.Dispatch<React.SetStateAction<SpotPayment[]>>;
   onRunSimulation: () => void;
   isLoading: boolean;
 }
@@ -32,7 +35,7 @@ const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChang
 
 
 const SimulationControls: React.FC<SimulationControlsProps> = ({
-  initialCapital, setInitialCapital, numSimulations, setNumSimulations, blocks, setBlocks, onRunSimulation, isLoading
+  initialCapital, setInitialCapital, numSimulations, setNumSimulations, blocks, setBlocks, spotPayments, setSpotPayments, onRunSimulation, isLoading
 }) => {
   
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -57,6 +60,25 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
   const removeBlock = (id: string) => {
     setBlocks(blocks.filter(b => b.id !== id));
   };
+  
+  const addSpotPayment = () => {
+    const newPayment: SpotPayment = {
+      id: `sp-${Date.now()}`,
+      name: '新規イベント',
+      year: 5,
+      amount: -1000000,
+    };
+    setSpotPayments([...spotPayments, newPayment]);
+  };
+  
+  const updateSpotPayment = (id: string, newPaymentData: Partial<SpotPayment>) => {
+    setSpotPayments(spotPayments.map(p => p.id === id ? { ...p, ...newPaymentData } : p));
+  };
+
+  const removeSpotPayment = (id: string) => {
+    setSpotPayments(spotPayments.filter(p => p.id !== id));
+  };
+
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     setDraggedIndex(index);
@@ -106,7 +128,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
         </div>
       </div>
       
-      <div className="flex-1 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-white">資産計画 (合計: {totalYears}年)</h2>
             <button onClick={addBlock} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
@@ -134,6 +156,27 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
           ))}
         </div>
       </div>
+      
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-white">スポットイベント</h2>
+            <button onClick={addSpotPayment} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+                <PlusIcon className="w-5 h-5"/>
+                イベントを追加
+            </button>
+        </div>
+        <div className="space-y-3">
+          {spotPayments.map((payment) => (
+            <SpotPaymentItem
+              key={payment.id}
+              payment={payment}
+              onUpdate={updateSpotPayment}
+              onRemove={removeSpotPayment}
+            />
+          ))}
+        </div>
+      </div>
+
 
       <div className="mt-auto pt-4">
         <button 
@@ -141,7 +184,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
           disabled={isLoading}
           className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-3">
           {isLoading ? (
-             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>

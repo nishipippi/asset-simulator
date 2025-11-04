@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BlockData, SimulationResult, FullSimulationResult } from './types';
+import { BlockData, SimulationResult, FullSimulationResult, SpotPayment } from './types';
 import { runMonteCarlo } from './services/monteCarloService';
 import Header from './components/Header';
 import SimulationControls from './components/SimulationControls';
@@ -48,6 +48,14 @@ const App: React.FC = () => {
       leverage: 1,
     },
   ]);
+  const [spotPayments, setSpotPayments] = useState<SpotPayment[]>([
+      {
+          id: 'sp-1',
+          name: '車の購入',
+          year: 5,
+          amount: -2000000
+      }
+  ]);
 
   const [timeSeriesData, setTimeSeriesData] = useState<SimulationResult>([]);
   const [finalAssets, setFinalAssets] = useState<number[]>([]);
@@ -71,6 +79,11 @@ const App: React.FC = () => {
         annualRisk: Number(b.annualRisk) || 0,
         leverage: Number(b.leverage) || 1,
       })),
+      spotPayments: spotPayments.map(p => ({
+        ...p,
+        year: Number(p.year) || 0,
+        amount: Number(p.amount) || 0,
+      })),
     };
 
     const results: FullSimulationResult = await runMonteCarlo(simulationParams);
@@ -78,7 +91,7 @@ const App: React.FC = () => {
     setFinalAssets(results.finalAssets);
     setBankruptcyRate(results.bankruptcyRate);
     setIsLoading(false);
-  }, [initialCapital, numSimulations, blocks]);
+  }, [initialCapital, numSimulations, blocks, spotPayments]);
   
   useEffect(() => {
     handleRunSimulation();
@@ -114,6 +127,8 @@ const App: React.FC = () => {
           setNumSimulations={setNumSimulations}
           blocks={blocks}
           setBlocks={setBlocks}
+          spotPayments={spotPayments}
+          setSpotPayments={setSpotPayments}
           onRunSimulation={handleRunSimulation}
           isLoading={isLoading}
         />
