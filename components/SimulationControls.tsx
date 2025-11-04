@@ -20,21 +20,53 @@ interface SimulationControlsProps {
   isLoading: boolean;
 }
 
-const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; prefix?: string; suffix?: string; }> = ({ label, value, onChange, prefix, suffix }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
-      <div className="relative">
-        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{prefix}</span>}
-        <input
-          type="number"
-          value={value}
-          onChange={onChange}
-          className={`w-full bg-gray-700 border border-gray-600 rounded-md py-2 text-gray-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition ${prefix ? 'pl-8' : 'px-3'} ${suffix ? 'pr-8' : ''}`}
-        />
-        {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{suffix}</span>}
-      </div>
-    </div>
-);
+const GlobalSettingsInput: React.FC<{ label: string; value: number | ''; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; prefix?: string; suffix?: string; step?: number; }> = ({ label, value, onChange, prefix, suffix, step = 1 }) => {
+    const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+        e.preventDefault();
+
+        const currentValue = parseFloat(String(value)) || 0;
+        
+        let effectiveStep = step;
+         if (step >= 100) {
+            if (Math.abs(currentValue) >= 1000000) {
+                effectiveStep = 100000;
+            } else if (Math.abs(currentValue) >= 100000) {
+                effectiveStep = 10000;
+            }
+        }
+        
+        const isScrollingUp = e.deltaY < 0;
+        let newValue = isScrollingUp ? currentValue + effectiveStep : currentValue - effectiveStep;
+
+        if (step % 1 !== 0) {
+            const precision = String(step).split('.')[1]?.length || 2;
+            newValue = parseFloat(newValue.toFixed(precision));
+        }
+
+        const syntheticEvent = {
+            target: { value: String(newValue) }
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        onChange(syntheticEvent);
+    };
+
+    return (
+        <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
+        <div className="relative">
+            {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{prefix}</span>}
+            <input
+            type="number"
+            value={value}
+            onChange={onChange}
+            onWheel={handleWheel}
+            className={`w-full bg-gray-700 border border-gray-600 rounded-md py-2 text-gray-200 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition ${prefix ? 'pl-8' : 'px-3'} ${suffix ? 'pr-8' : ''}`}
+            />
+            {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{suffix}</span>}
+        </div>
+        </div>
+    );
+};
 
 
 const SimulationControls: React.FC<SimulationControlsProps> = ({
@@ -105,6 +137,22 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
     setDraggedIndex(null);
   };
   
+  const handleStandardize = (sourceId: string) => {
+    const sourceBlock = blocks.find(b => b.id === sourceId);
+    if (!sourceBlock) return;
+
+    const { annualReturn, annualRisk, leverage } = sourceBlock;
+
+    setBlocks(currentBlocks => 
+      currentBlocks.map(block => ({
+        ...block,
+        annualReturn,
+        annualRisk,
+        leverage,
+      }))
+    );
+  };
+
   const totalYears = blocks.reduce((acc, b) => acc + (Number(b.durationYears) || 0), 0);
 
   return (
@@ -120,6 +168,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
                 setInitialCapital(isNaN(val) ? '' : val);
             }}
             prefix="¥"
+            step={10000}
           />
           <GlobalSettingsInput
             label="シミュレーション回数"
@@ -128,6 +177,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
                 const val = parseInt(e.target.value, 10);
                 setNumSimulations(isNaN(val) ? '' : val);
             }}
+            step={100}
           />
           <GlobalSettingsInput
             label="年間の想定インフレ率"
@@ -137,6 +187,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
                 setInflationRate(isNaN(val) ? '' : val);
             }}
             suffix="%"
+            step={0.1}
           />
         </div>
       </div>
@@ -164,6 +215,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
                 block={block}
                 onUpdate={updateBlock}
                 onRemove={removeBlock}
+                onStandardize={handleStandardize}
               />
             </div>
           ))}

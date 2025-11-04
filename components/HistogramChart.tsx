@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label } from 'recharts';
 
 interface HistogramChartProps {
   data: number[];
@@ -22,7 +22,7 @@ interface Bin {
     count: number;
 }
 
-const createHistogramData = (data: number[], numBins: number = 20): Bin[] => {
+const createHistogramData = (data: number[], numBins: number = 30): Bin[] => {
     if (!data || data.length === 0) return [];
 
     const maxVal = Math.max(...data);
@@ -50,8 +50,12 @@ const createHistogramData = (data: number[], numBins: number = 20): Bin[] => {
     });
 
     for (const d of data) {
-        const binIndex = Math.floor((d - minVal) / binWidth);
-        const targetIndex = Math.min(binIndex, numBins - 1);
+        let binIndex = 0;
+        if (binWidth > 0) {
+            binIndex = Math.floor((d - minVal) / binWidth);
+        }
+        // For the max value, it should be in the last bin
+        const targetIndex = d === maxVal ? numBins - 1 : Math.min(binIndex, numBins - 1);
         if (bins[targetIndex]) {
             bins[targetIndex].count++;
         }
@@ -144,7 +148,13 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
             </div>
             <div className="flex-grow min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={histogramData} margin={{ top: 5, right: 30, left: 30, bottom: 20 }}>
+                    <AreaChart data={histogramData} margin={{ top: 5, right: 30, left: 30, bottom: 20 }}>
+                        <defs>
+                            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#22d3ee" stopOpacity={0.1}/>
+                            </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
                         <XAxis 
                             dataKey="range" 
@@ -164,8 +174,16 @@ const HistogramChart: React.FC<HistogramChartProps> = ({ data, isLoading }) => {
                             <Label value="度数" angle={-90} position="insideLeft" offset={-10} fill="#9ca3af" />
                         </YAxis>
                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(34, 211, 238, 0.1)'}} />
-                        <Bar dataKey="count" name="度数" fill="#22d3ee" barSize={20} />
-                    </BarChart>
+                        <Area 
+                            type="monotone" 
+                            dataKey="count" 
+                            name="度数" 
+                            stroke="#22d3ee" 
+                            strokeWidth={2}
+                            fillOpacity={1} 
+                            fill="url(#colorCount)" 
+                        />
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
             <div className="pt-4 px-8 pb-2">

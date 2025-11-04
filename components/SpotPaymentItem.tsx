@@ -9,21 +9,54 @@ interface SpotPaymentItemProps {
   onRemove: (id: string) => void;
 }
 
-const InputField: React.FC<{ label: string; value: number | string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; suffix?: string; placeholder?: string }> = ({ label, value, onChange, type = 'number', suffix, placeholder }) => (
-  <div className="flex-1">
-    <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
-    <div className="relative">
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1.5 px-3 text-gray-200 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-      />
-      {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{suffix}</span>}
-    </div>
-  </div>
-);
+const InputField: React.FC<{ label: string; value: number | string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; suffix?: string; placeholder?: string; step?: number; }> = ({ label, value, onChange, type = 'number', suffix, placeholder, step = 1 }) => {
+    const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+        if (type !== 'number') return;
+        e.preventDefault();
+
+        const currentValue = parseFloat(String(value)) || 0;
+        
+        let effectiveStep = step;
+        if (step >= 100) {
+            if (Math.abs(currentValue) >= 1000000) {
+                effectiveStep = 100000;
+            } else if (Math.abs(currentValue) >= 100000) {
+                effectiveStep = 10000;
+            }
+        }
+        
+        const isScrollingUp = e.deltaY < 0;
+        let newValue = isScrollingUp ? currentValue + effectiveStep : currentValue - effectiveStep;
+
+        if (step % 1 !== 0) {
+            const precision = String(step).split('.')[1]?.length || 2;
+            newValue = parseFloat(newValue.toFixed(precision));
+        }
+
+        const syntheticEvent = {
+            target: { value: String(newValue) }
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        onChange(syntheticEvent);
+    };
+    
+    return (
+      <div className="flex-1">
+        <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
+        <div className="relative">
+          <input
+            type={type}
+            value={value}
+            onChange={onChange}
+            onWheel={handleWheel}
+            placeholder={placeholder}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-1.5 px-3 text-gray-200 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+          />
+          {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{suffix}</span>}
+        </div>
+      </div>
+    );
+};
 
 const SpotPaymentItem: React.FC<SpotPaymentItemProps> = ({ payment, onUpdate, onRemove }) => {
   const isExpense = Number(payment.amount) < 0;
@@ -47,6 +80,7 @@ const SpotPaymentItem: React.FC<SpotPaymentItemProps> = ({ payment, onUpdate, on
                 onUpdate(payment.id, { year: isNaN(val) ? '' : val });
               }}
               suffix="年後"
+              step={1}
             />
             <InputField
               label="金額"
@@ -56,6 +90,7 @@ const SpotPaymentItem: React.FC<SpotPaymentItemProps> = ({ payment, onUpdate, on
                 onUpdate(payment.id, { amount: isNaN(val) ? '' : val });
               }}
               suffix="円"
+              step={10000}
             />
         </div>
       </div>

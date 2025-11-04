@@ -3,30 +3,65 @@ import React from 'react';
 import { BlockData } from '../types';
 import TrashIcon from './icons/TrashIcon';
 import GripVerticalIcon from './icons/GripVerticalIcon';
+import ClipboardDocumentListIcon from './icons/ClipboardDocumentListIcon';
 
 interface SimulationBlockProps {
   block: BlockData;
   onUpdate: (id: string, newBlockData: Partial<BlockData>) => void;
   onRemove: (id:string) => void;
+  onStandardize: (id: string) => void;
 }
 
-const InputField: React.FC<{ label: string; value: number | string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; suffix?: string; placeholder?: string }> = ({ label, value, onChange, type = 'number', suffix, placeholder }) => (
-  <div className="flex-1">
-    <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
-    <div className="relative">
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full bg-gray-700 border border-gray-600 rounded-md py-1.5 px-3 text-gray-200 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-      />
-      {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{suffix}</span>}
-    </div>
-  </div>
-);
+const InputField: React.FC<{ label: string; value: number | string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; suffix?: string; placeholder?: string; step?: number; }> = ({ label, value, onChange, type = 'number', suffix, placeholder, step = 1 }) => {
+    const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+        if (type !== 'number') return;
+        e.preventDefault();
 
-const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRemove }) => {
+        const currentValue = parseFloat(String(value)) || 0;
+        
+        let effectiveStep = step;
+        if (step >= 100) {
+            if (Math.abs(currentValue) >= 1000000) {
+                effectiveStep = 100000;
+            } else if (Math.abs(currentValue) >= 100000) {
+                effectiveStep = 10000;
+            }
+        }
+        
+        const isScrollingUp = e.deltaY < 0;
+        let newValue = isScrollingUp ? currentValue + effectiveStep : currentValue - effectiveStep;
+
+        if (step % 1 !== 0) {
+            const precision = String(step).split('.')[1]?.length || 2;
+            newValue = parseFloat(newValue.toFixed(precision));
+        }
+
+        const syntheticEvent = {
+            target: { value: String(newValue) }
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        onChange(syntheticEvent);
+    };
+
+    return (
+      <div className="flex-1">
+        <label className="block text-xs font-medium text-gray-400 mb-1">{label}</label>
+        <div className="relative">
+          <input
+            type={type}
+            value={value}
+            onChange={onChange}
+            onWheel={handleWheel}
+            placeholder={placeholder}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-1.5 px-3 text-gray-200 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+          />
+          {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{suffix}</span>}
+        </div>
+      </div>
+    );
+};
+
+const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRemove, onStandardize }) => {
   const isWithdrawal = Number(block.monthlyContribution) < 0;
 
   return (
@@ -35,13 +70,25 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
         <GripVerticalIcon className="w-6 h-6" />
       </div>
       <div className="flex-1 space-y-4">
-        <input
-            type="text"
-            value={block.name}
-            onChange={(e) => onUpdate(block.id, { name: e.target.value })}
-            placeholder="フェーズ名（例：積立期間）"
-            className="w-full bg-transparent text-lg font-bold text-white placeholder-gray-500 focus:outline-none"
-        />
+        <div className="flex items-center gap-2 justify-between">
+            <input
+                type="text"
+                value={block.name}
+                onChange={(e) => onUpdate(block.id, { name: e.target.value })}
+                placeholder="フェーズ名（例：積立期間）"
+                className="flex-grow bg-transparent text-lg font-bold text-white placeholder-gray-500 focus:outline-none"
+            />
+            <button
+                onClick={() => onStandardize(block.id)}
+                title="投資商品を全フェーズこれに統一"
+                className="group relative flex-shrink-0 text-gray-500 hover:text-cyan-400 transition-colors p-1 rounded-full"
+            >
+                <ClipboardDocumentListIcon className="w-5 h-5" />
+                <span className="hidden sm:block absolute top-1/2 -translate-y-1/2 right-full mr-2 bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                    投資商品を全フェーズこれに統一
+                </span>
+            </button>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <InputField
               label="期間"
@@ -51,6 +98,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                 onUpdate(block.id, { durationYears: isNaN(val) ? '' : val });
               }}
               suffix="年"
+              step={1}
             />
             <InputField
               label="毎月の積立/取崩額"
@@ -60,6 +108,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                 onUpdate(block.id, { monthlyContribution: isNaN(val) ? '' : val });
               }}
               suffix="円"
+              step={1000}
             />
             <InputField
               label="年次リターン"
@@ -69,6 +118,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                   onUpdate(block.id, { annualReturn: isNaN(val) ? '' : val });
               }}
               suffix="%"
+              step={0.5}
             />
             <InputField
               label="年次リスク"
@@ -78,6 +128,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
                 onUpdate(block.id, { annualRisk: isNaN(val) ? '' : val });
               }}
               suffix="%"
+              step={0.5}
             />
             <InputField
               label="レバレッジ"
@@ -88,6 +139,7 @@ const SimulationBlock: React.FC<SimulationBlockProps> = ({ block, onUpdate, onRe
               }}
               suffix="倍"
               placeholder="1"
+              step={0.1}
             />
         </div>
         <div className="flex items-center gap-2 pt-1">
