@@ -1,4 +1,3 @@
-
 import { SimulationParams, FullSimulationResult } from '../types';
 
 // Uses the Box-Muller transform to generate a normally distributed random number.
@@ -34,11 +33,15 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
       const leveragedAnnualReturn = leverage * annualReturn;
       const leveragedAnnualRisk = leverage * annualRisk;
       
+      const monthlyReturn = leveragedAnnualReturn / 12;
+      const monthlyRisk = leveragedAnnualRisk / Math.sqrt(12);
+      
       return {
         ...block,
         monthlyContribution: Number(block.monthlyContribution) || 0,
-        monthlyReturn: leveragedAnnualReturn / 12,
-        monthlyRisk: leveragedAnnualRisk / Math.sqrt(12),
+        // Parameters for log-normal model (Geometric Brownian Motion)
+        logDrift: monthlyReturn - (monthlyRisk * monthlyRisk) / 2.0,
+        logVolatility: monthlyRisk,
         durationMonths: (Number(block.durationYears) || 0) * 12,
       };
     });
@@ -61,8 +64,9 @@ export const runMonteCarlo = (params: SimulationParams): Promise<FullSimulationR
         for (let m = 0; m < block.durationMonths; m++) {
           // Only apply returns if capital is positive
           if (currentCapital > 0) {
-            const randomReturn = generateNormalRandom(block.monthlyReturn, block.monthlyRisk);
-            currentCapital *= (1 + randomReturn);
+            // Use log-normal model (Geometric Brownian Motion)
+            const randomLogReturn = generateNormalRandom(block.logDrift, block.logVolatility);
+            currentCapital *= Math.exp(randomLogReturn);
           }
           
           const yearsElapsed = Math.floor(monthCounter / 12);
